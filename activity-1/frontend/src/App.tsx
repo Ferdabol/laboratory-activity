@@ -1,107 +1,124 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import type { ChangeEvent } from "react";
+import axios from "axios";
 
+interface Task {
+  _id: string;
+  title: string;
+  completed: boolean;
+}
+
+const API_URL = "http://localhost:3000/tasks";
 
 function App() {
-  const [tasks, setTasks] = useState<string[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState<string>("");
-  const [completedTasks, setCompletedTasks] = useState<Set<number>>(new Set());
 
-  function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
-    setNewTask(event.target.value);
-  }
+  // 🧠 Fetch tasks from backend
+  useEffect(() => {
+    fetchTasks();
+  }, []);
 
-  function addTask() {
-    if (newTask.trim() !== "") {
-      setTasks((t) => [...t, newTask]);
-      setNewTask("");
+  const fetchTasks = async () => {
+    try {
+      const res = await axios.get(API_URL);
+      setTasks(res.data);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
     }
-  }
+  };
 
-  function deleteTask(index: number) {
-    const updatedTasks = tasks.filter((_, i) => i !== index);
-    setTasks(updatedTasks);
+  // 📝 Add new task
+  const addTask = async () => {
+    if (newTask.trim() === "") return;
+    try {
+      const res = await axios.post(API_URL, { title: newTask });
+      setTasks([...tasks, res.data]);
+      setNewTask("");
+    } catch (error) {
+      console.error("Error adding task:", error);
+    }
+  };
 
-    setCompletedTasks((prev) => {
-      const updated = new Set(prev);
-      updated.delete(index);
-      return updated;
-    });
-  }
+  // ✅ Toggle task completion
+  const toggleTaskCompletion = async (id: string) => {
+    try {
+      const res = await axios.patch(`${API_URL}/${id}/toggle`);
+      setTasks(tasks.map((t) => (t._id === id ? res.data : t)));
+    } catch (error) {
+      console.error("Error toggling task:", error);
+    }
+  };
 
-  function toggleTaskCompletion(index: number) {
-    setCompletedTasks((prev) => {
-      const updated = new Set(prev);
-      if (updated.has(index)) {
-        updated.delete(index);
-      } else {
-        updated.add(index);
-      }
-      return updated;
-    });
-  }
+  // 🗑️ Delete a task
+  const deleteTask = async (id: string) => {
+    try {
+      await axios.delete(`${API_URL}/${id}`);
+      setTasks(tasks.filter((t) => t._id !== id));
+    } catch (error) {
+      console.error("Error deleting task:", error);
+    }
+  };
 
-  const completedCount = completedTasks.size;
+
+  const completedCount = tasks.filter((t) => t.completed).length;
   const uncompletedCount = tasks.length - completedCount;
 
   return (
-    <div className="items-center justify-center flex flex-col h-screen">
-      <fieldset className="border-purple-500 border-2 border-gray-300 rounded-lg p-4">
-        <h1 className="text-3xl mt-1 text-center">To-Do List</h1>
+    <div className="flex items-center justify-center flex-col h-screen w-screen text-white">
+      <fieldset className="border-purple-500 border-2 rounded-lg p-6">
+        <h1 className="text-3xl text-center mb-4">To-Do List</h1>
 
-        <div className="flex space-x-2 mt-7 justify-center">
+        <div className="flex space-x-2 justify-center mb-6">
           <input
             type="text"
             placeholder="Add a new task"
-            onChange={handleInputChange}
             value={newTask}
-            className="hover:scale-102 border-2 rounded-lg px-3 py-1 hover:shadow-[0_2px_8px_rgba(192,132,252,1)] "
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setNewTask(e.target.value)}
+            className="border-2 rounded-lg px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-purple-400"
           />
           <button
-            className="text-white hover:scale-102 hover:shadow-[0_2px_8px_rgba(192,132,252,1)] bg-gradient-to-r from-violet-500 to-purple-400 px-2 rounded-lg"
             onClick={addTask}
+            className="bg-gradient-to-r from-violet-500 to-purple-400 text-white px-4 py-2 rounded-lg hover:scale-105 transition-transform"
           >
             Add Task
           </button>
         </div>
 
-        <p className="text-center mt-4 text-2xl">Task List</p>
+        <p className="text-center text-2xl mb-2">Task List</p>
         <ol className="p-0">
-          {tasks.map((task, index) => (
+          {tasks.map((task) => (
             <li
-              key={index}
-              className="flex items-center mt-4 mb-3 border-2 p-2 rounded-lg hover:-translate-y-1 transition-all"
+              key={task._id}
+              className="flex items-center mt-3 mb-3 border-2 p-2 rounded-lg hover:-translate-y-1 transition-all"
             >
               <input
                 type="checkbox"
-                className="mr-2 scale-130 hover:scale-150"
-                onChange={() => toggleTaskCompletion(index)}
-                checked={completedTasks.has(index)}
+                className="mr-3 scale-125 cursor-pointer"
+                onChange={() => toggleTaskCompletion(task._id)}
+                checked={task.completed}
               />
               <span
-                className={`text-lg pl-1 mr-4 ${
-                  completedTasks.has(index)
-                    ? "line-through text-gray-500"
-                    : ""
+                className={`text-lg flex-1 ${
+                  task.completed ? "line-through text-gray-400" : ""
                 }`}
               >
-                {task}
+                {task.title}
               </span>
-              <div className="space-x-2 text-right ml-auto">
-                <button
-                  className="text-red-500 hover:scale-110"
-                  onClick={() => deleteTask(index)}
-                >
-                  Delete
-                </button>
-              </div>
+              <button
+                className="text-red-400 hover:scale-110 transition-transform"
+                onClick={() => deleteTask(task._id)}
+              >
+                Delete
+              </button>
             </li>
           ))}
         </ol>
 
-        <hr />
+        <hr className="my-4 border-gray-600" />
 
-        <div className="flex justify-center mt-4">
+        {/* Task Summary */}
+        <div className="text-center">
           <p className="text-lg">
             Completed: {completedCount} / Uncompleted: {uncompletedCount}
           </p>

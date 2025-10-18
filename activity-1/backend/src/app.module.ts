@@ -4,9 +4,10 @@ import { TasksModule } from './tasks/tasks.module';
 
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb://localhost:27017/activity1-db'),
+    MongooseModule.forRoot('mongodb://localhost:27017/todo-app'),
     TasksModule,
   ],
 })
 export class AppModule {}
+
 

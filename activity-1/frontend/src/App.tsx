@@ -14,7 +14,6 @@ function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState<string>("");
 
-  // 🧠 Fetch tasks from backend
   useEffect(() => {
     fetchTasks();
   }, []);
@@ -28,7 +27,6 @@ function App() {
     }
   };
 
-  // 📝 Add new task
   const addTask = async () => {
     if (newTask.trim() === "") return;
     try {
@@ -40,7 +38,6 @@ function App() {
     }
   };
 
-  // ✅ Toggle task completion
   const toggleTaskCompletion = async (id: string) => {
     try {
       const res = await axios.patch(`${API_URL}/${id}/toggle`);
@@ -50,7 +47,7 @@ function App() {
     }
   };
 
-  // 🗑️ Delete a task
+
   const deleteTask = async (id: string) => {
     try {
       await axios.delete(`${API_URL}/${id}`);
@@ -117,7 +114,7 @@ function App() {
 
         <hr className="my-4 border-gray-600" />
 
-        {/* Task Summary */}
+
         <div className="text-center">
           <p className="text-lg">
             Completed: {completedCount} / Uncompleted: {uncompletedCount}

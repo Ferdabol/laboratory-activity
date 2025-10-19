@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Task, TaskDocument } from './task.schema';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 
 @Injectable()
 export class TasksService {
@@ -30,6 +31,12 @@ export class TasksService {
     }
     task.completed = !task.completed;
     return task.save();
+  }
+
+  async update(id: string, updateTaskDto: UpdateTaskDto): Promise<Task> {
+    const updatedTask = await this.taskModel.findByIdAndUpdate(id, updateTaskDto, { new: true });
+    if (!updatedTask) throw new NotFoundException('Task not found');
+    return updatedTask;
   }
 
 

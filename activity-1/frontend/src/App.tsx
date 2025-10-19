@@ -13,6 +13,8 @@ const API_URL = "http://localhost:3000/tasks";
 function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState<string>("");
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editedTitle, setEditedTitle] = useState<string>("");
 
   useEffect(() => {
     fetchTasks();
@@ -47,7 +49,6 @@ function App() {
     }
   };
 
-
   const deleteTask = async (id: string) => {
     try {
       await axios.delete(`${API_URL}/${id}`);
@@ -57,70 +58,76 @@ function App() {
     }
   };
 
+  const startEditing = (task: Task) => {
+    setEditingTaskId(task._id);
+    setEditedTitle(task.title);
+  };
+
+  const cancelEditing = () => {
+    setEditingTaskId(null);
+    setEditedTitle("");
+  };
+
+  const saveEdit = async (id: string) => {
+    try {
+      const res = await axios.patch(`${API_URL}/${id}`, { title: editedTitle });
+      setTasks(tasks.map((t) => (t._id === id ? res.data : t)));
+      cancelEditing();
+    } catch (error) {
+      console.error("Error editing task:", error);
+    }
+  };
 
   const completedCount = tasks.filter((t) => t.completed).length;
   const uncompletedCount = tasks.length - completedCount;
 
   return (
-    <div className="flex items-center justify-center flex-col h-screen w-screen text-white">
-      <fieldset className="border-purple-500 border-2 rounded-lg p-6">
-        <h1 className="text-3xl text-center mb-4">To-Do List</h1>
+    <div className="min-h-screen w-screen flex items-center justify-center bg-gradient-to-br from-violet-700 via-purple-700 to-indigo-700 p-6">
+      <div className="w-full max-w-lg bg-gray-900 text-white rounded-2xl shadow-2xl p-6">
+        <h1 className="text-4xl font-bold text-center mb-6">✨ To-Do List</h1>
 
-        <div className="flex space-x-2 justify-center mb-6">
-          <input
-            type="text"
-            placeholder="Add a new task"
-            value={newTask}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setNewTask(e.target.value)}
-            className="border-2 rounded-lg px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-purple-400"
-          />
-          <button
-            onClick={addTask}
-            className="bg-gradient-to-r from-violet-500 to-purple-400 text-white px-4 py-2 rounded-lg hover:scale-105 transition-transform"
-          >
-            Add Task
-          </button>
+        <div className="flex mb-6 space-x-2">
+          <input type="text" placeholder="Add a new task..." value={newTask} onChange={(e: ChangeEvent<HTMLInputElement>) => setNewTask(e.target.value)} className="flex-1 border-2 border-purple-500 rounded-lg px-3 py-2 bg-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-400" />
+          <button onClick={addTask} className="bg-gradient-to-r from-violet-500 to-purple-400 text-white px-4 py-2 rounded-lg hover:scale-105 transition-transform">Add</button>
         </div>
 
-        <p className="text-center text-2xl mb-2">Task List</p>
-        <ol className="p-0">
+        {/* Task List */}
+        <p className="text-xl font-semibold mb-3 text-center">Your Tasks</p>
+        <ul className="space-y-3">
           {tasks.map((task) => (
-            <li
-              key={task._id}
-              className="flex items-center mt-3 mb-3 border-2 p-2 rounded-lg hover:-translate-y-1 transition-all"
-            >
-              <input
-                type="checkbox"
-                className="mr-3 scale-125 cursor-pointer"
-                onChange={() => toggleTaskCompletion(task._id)}
-                checked={task.completed}
-              />
-              <span
-                className={`text-lg flex-1 ${
-                  task.completed ? "line-through text-gray-400" : ""
-                }`}
-              >
-                {task.title}
-              </span>
-              <button
-                className="text-red-400 hover:scale-110 transition-transform"
-                onClick={() => deleteTask(task._id)}
-              >
-                Delete
-              </button>
+            <li key={task._id} className="flex items-center justify-between bg-gray-800 rounded-lg p-3 shadow hover:-translate-y-1 hover:shadow-lg transition-all">
+              <div className="flex items-center flex-1 space-x-3">
+                <input type="checkbox" checked={task.completed} onChange={() => toggleTaskCompletion(task._id)} className="h-5 w-5 cursor-pointer accent-purple-500" />
+                {editingTaskId === task._id ? (
+                  <input type="text" value={editedTitle} onChange={(e) => setEditedTitle(e.target.value)} className="flex-1 bg-gray-700 rounded px-2 py-1 text-white focus:outline-none" />
+                ) : (
+                  <span className={`text-lg flex-1 ${task.completed ? "line-through text-gray-400" : ""}`}>{task.title}</span>
+                )}
+              </div>
+
+              <div className="flex space-x-3">
+                {editingTaskId === task._id ? (
+                  <>
+                    <button onClick={() => saveEdit(task._id)} className="text-green-400 hover:scale-110 transition-transform">Save</button>
+                    <button onClick={cancelEditing} className="text-gray-400 hover:scale-110 transition-transform">Cancel</button>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={() => startEditing(task)} className="text-blue-400 hover:scale-110 transition-transform">Edit</button>
+                    <button onClick={() => deleteTask(task._id)} className="text-red-400 hover:scale-110 transition-transform">Delete</button>
+                  </>
+                )}
+              </div>
             </li>
           ))}
-        </ol>
+        </ul>
 
-        <hr className="my-4 border-gray-600" />
+        <hr className="my-6 border-gray-700" />
 
-
-        <div className="text-center">
-          <p className="text-lg">
-            Completed: {completedCount} / Uncompleted: {uncompletedCount}
-          </p>
+        <div className="text-center text-lg">
+          <p>✅ Completed: <span className="text-green-400">{completedCount}</span> | ⏳ Uncompleted: <span className="text-yellow-400">{uncompletedCount}</span></p>
         </div>
-      </fieldset>
+      </div>
     </div>
   );
 }

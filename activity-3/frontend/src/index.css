@@ -1,0 +1,113 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&family=Lora:wght@400;500;600;700&family=Crimson+Text:wght@400;600;700&display=swap');
+
+/* === BOOKSHELF THEME: Warm & Cozy Palette === */
+@theme {
+  --color-primary: #7D5A50;    /* deep mocha brown */
+  --color-accent: #B4846C;     /* warm clay */
+  --color-card: #E5B299;       /* parchment surface */
+  --color-bg: #FCDEC0;         /* soft cream background */
+  --color-text: #3C2F2F;       /* dark ink text */
+  --color-text-light: #FFFFFF; /* white for buttons/nav */
+  
+  /* 📚 Bookshelf Fonts */
+  --font-heading: 'Merriweather', 'Georgia', serif;
+  --font-body: 'Lora', 'Times New Roman', serif;
+  --font-accent: 'Crimson Text', serif;
+}
+
+/* === BASE LAYOUT === */
+:root {
+  font-family: var(--font-body);
+  line-height: 1.6;
+  font-weight: 400;
+  color: var(--color-text);
+
+  /* 📖 Background Gradient (subtle, paper-like warmth) */
+  background: linear-gradient(
+    180deg,
+    var(--color-bg) 0%,
+    var(--color-card) 100%
+  );
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* === TYPOGRAPHY === */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+p, li, span {
+  font-family: var(--font-body);
+}
+
+/* === LINKS === */
+a {
+  color: var(--color-primary);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s, text-decoration 0.2s;
+}
+a:hover {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+
+/* === NAVBAR === */
+nav {
+  background-color: var(--color-primary);
+  color: var(--color-text-light);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  font-family: var(--font-heading);
+}
+
+/* === BUTTONS === */
+button {
+  background-color: var(--color-primary);
+  color: var(--color-text-light);
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-family: var(--font-heading);
+  transition: background-color 0.25s, transform 0.15s;
+}
+button:hover {
+  background-color: var(--color-accent);
+  transform: translateY(-2px);
+}
+
+/* === CARD STYLING === */
+.card {
+  background-color: var(--color-card);
+  border: 1px solid rgba(0,0,0,0.05);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+  padding: 1.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+}
+
+/* === CONTAINER === */
+.container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+

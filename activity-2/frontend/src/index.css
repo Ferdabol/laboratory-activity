@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+/* === THEME COLORS (Warm Journal Palette) === */
+@theme {
+  --color-primary: #9BB4C0; /* soft blue (top) */
+  --color-bg: #EAD7BD;      /* warm cream (second) */
+  --color-accent: #A48B66;  /* taupe brown (third) */
+  --color-dark: #6B3434;    /* deep maroon (bottom) */
+  --color-muted: #B9A788;   /* muted sand tone */
+  --color-card: #F6F4EE;    /* subtle off-white */
+  --color-text: #3C2F2F;    /* dark brown text */
+  --color-text-light: #FFFFFF; /* light text */
+}
+
+/* === BASE LAYOUT === */
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--color-text);
+
+  /* 🌤️ Background Gradient (applied globally) */
+  background: linear-gradient(
+    180deg,
+    var(--color-primary) 0%,
+    var(--color-bg) 40%,
+    var(--color-accent) 100%
+  );
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+
+/* === LINK STYLES === */
+a {
+  color: var(--color-dark);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+a:hover {
+  color: var(--color-accent);
+  text-decoration: underline;
+}

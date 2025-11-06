@@ -14,7 +14,7 @@ export default function App() {
     <Router>
       <div className="min-h-screen flex items-center justify-center">
         <Routes>
-          <Route path="/" element={auth ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
+          <Route path="/" element={<Navigate to="/login" />} />
           <Route path="/login" element={<Login setAuth={setAuth} setLoggedInUser={setLoggedInUser} />} />
           <Route path="/register" element={<Register setAuth={setAuth} setLoggedInUser={setLoggedInUser} />} />
           <Route

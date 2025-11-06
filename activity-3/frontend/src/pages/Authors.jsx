@@ -1,13 +1,19 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Button from "../components/Button";
-import { FaPen, FaBook } from 'react-icons/fa';
+import { FaPen, FaBook, FaTimes } from 'react-icons/fa';
 
 const Authors = () => {
   const [authors, setAuthors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    country: '',
+    biography: ''
+  });
 
-  // Mock data for testing design
+  // Mock data for initial load (if no localStorage data)
   const mockAuthors = [
     {
       _id: '1',
@@ -54,20 +60,33 @@ const Authors = () => {
   ];
 
   useEffect(() => {
-    fetchAuthors();
+    const storedAuthors = localStorage.getItem('authors');
+    if (storedAuthors) {
+      setAuthors(JSON.parse(storedAuthors));
+    } else {
+      setAuthors(mockAuthors);
+      localStorage.setItem('authors', JSON.stringify(mockAuthors));
+    }
+    setLoading(false);
   }, []);
 
-  const fetchAuthors = async () => {
-    try {
-      const response = await fetch("http://localhost:3000/api/authors");
-      const data = await response.json();
-      setAuthors(data);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching authors:", error);
-      setAuthors(mockAuthors);
-      setLoading(false);
-    }
+  const handleModalOpen = () => setIsModalOpen(true);
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setFormData({ name: '', country: '', biography: '' }); 
+  };
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newAuthor = { ...formData, _id: Date.now().toString(), bookCount: 0 };
+    const updatedAuthors = [...authors, newAuthor];
+    setAuthors(updatedAuthors);
+    localStorage.setItem('authors', JSON.stringify(updatedAuthors));
+    handleModalClose();
   };
 
   return (
@@ -76,9 +95,7 @@ const Authors = () => {
         <h1 className="text-4xl font-bold" style={{ color: 'var(--color-primary)' }}>
           <FaPen className="inline mr-2" size={32} /> Authors Collection
         </h1>
-        <Link to="/add-author">
-          <Button>+ Add New Author</Button>
-        </Link>
+        <Button onClick={handleModalOpen}>+ Add New Author</Button>
       </div>
 
       {loading ? (
@@ -88,9 +105,7 @@ const Authors = () => {
       ) : authors.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-xl mb-4" style={{ color: 'var(--color-text)' }}>No authors in your collection yet.</p>
-          <Link to="/add-author">
-            <Button>Add Your First Author</Button>
-          </Link>
+          <Button onClick={handleModalOpen}>Add Your First Author</Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -124,6 +139,112 @@ const Authors = () => {
               </div>
             </Link>
           ))}
+        </div>
+      )}
+
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50">
+          <div className="absolute inset-0 backdrop-blur-sm"></div> 
+          {/* Modal content */}
+          <div className="relative flex items-center justify-center h-full">
+            <div className="relative rounded-lg shadow-2xl p-6 md:p-8 max-w-md w-full mx-4" 
+                 style={{ backgroundColor: 'var(--color-primary)' }}>
+              
+              {/* Wood grain texture effect */}
+              <div className="absolute inset-0 opacity-10 rounded-lg pointer-events-none" 
+                   style={{
+                     backgroundImage: `repeating-linear-gradient(
+                       90deg,
+                       transparent,
+                       transparent 2px,
+                       rgba(0,0,0,0.1) 2px,
+                       rgba(0,0,0,0.1) 4px
+                     )`
+                   }}>
+              </div>
+              
+              {/* Top shelf edge */}
+              <div className="absolute top-0 left-0 right-0 h-3 rounded-t-lg shadow-inner" 
+                   style={{ backgroundColor: 'var(--color-accent)' }}></div>
+              
+              {/* Content area  */}
+              <div className="relative rounded-md shadow-inner p-6 min-h-[40vh]" 
+                   style={{ backgroundColor: 'var(--color-bg)' }}>
+                
+                {/* Decorative shelf brackets */}
+                <div className="absolute top-2 left-2 w-6 h-6 border-t-4 border-l-4 rounded-tl-md opacity-40" 
+                     style={{ borderColor: 'var(--color-primary)' }}></div>
+                <div className="absolute top-2 right-2 w-6 h-6 border-t-4 border-r-4 rounded-tr-md opacity-40" 
+                     style={{ borderColor: 'var(--color-primary)' }}></div>
+                <div className="absolute bottom-2 left-2 w-6 h-6 border-b-4 border-l-4 rounded-bl-md opacity-40" 
+                     style={{ borderColor: 'var(--color-primary)' }}></div>
+                <div className="absolute bottom-2 right-2 w-6 h-6 border-b-4 border-r-4 rounded-br-md opacity-40" 
+                     style={{ borderColor: 'var(--color-primary)' }}></div>
+                
+                {/* Main content */}
+                <div className="relative z-10">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-2xl font-bold" style={{ color: 'var(--color-primary)' }}>
+                      <FaPen className="inline mr-2" size={24} /> Add New Author
+                    </h2>
+                    <button onClick={handleModalClose} className="text-gray-500 hover:text-gray-700">
+                      <FaTimes size={20} />
+                    </button>
+                  </div>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium" style={{ color: 'var(--color-text)' }}>Name</label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                        className="w-full p-2 border rounded"
+                        style={{ borderColor: 'var(--color-accent)' }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium" style={{ color: 'var(--color-text)' }}>Country</label>
+                      <input
+                        type="text"
+                        name="country"
+                        value={formData.country}
+                        onChange={handleChange}
+                        className="w-full p-2 border rounded"
+                        style={{ borderColor: 'var(--color-accent)' }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium" style={{ color: 'var(--color-text)' }}>Biography</label>
+                      <textarea
+                        name="biography"
+                        value={formData.biography}
+                        onChange={handleChange}
+                        className="w-full p-2 border rounded"
+                        style={{ borderColor: 'var(--color-accent)' }}
+                      />
+                    </div>
+                    <div className="flex justify-end space-x-2">
+                      <Button type="button" onClick={handleModalClose} className="bg-gray-500">Cancel</Button>
+                      <Button type="submit">Add Author</Button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+              
+              {/* Bottom shelf edge */}
+              <div className="absolute bottom-0 left-0 right-0 h-3 rounded-b-lg shadow-md" 
+                   style={{ backgroundColor: 'var(--color-accent)' }}></div>
+              
+              {/* Side supports */}
+              <div className="absolute top-0 left-0 w-2 h-full rounded-l-lg" 
+                   style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.2), transparent)' }}></div>
+              <div className="absolute top-0 right-0 w-2 h-full rounded-r-lg" 
+                   style={{ background: 'linear-gradient(to left, rgba(0,0,0,0.2), transparent)' }}></div>
+            </div>
+          </div>
         </div>
       )}
     </>

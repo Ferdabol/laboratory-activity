@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import Button from "../components/Button";
-import { FaBookOpen, FaPen, FaFolder, FaInfinity, FaSparkles } from 'react-icons/fa';
+import { FaBookOpen, FaPen, FaFolder, FaInfinity, FaMagic } from 'react-icons/fa';
 
 export default function Home() {
   const features = [
@@ -29,7 +29,7 @@ export default function Home() {
 
   return (
     <>
- 
+      {/* Hero Section */}
       <div className="text-center py-12 mb-12">
         <div className="mb-6">
           <FaBookOpen className="text-7xl" style={{ color: "var(--color-primary)" }} />
@@ -91,7 +91,7 @@ export default function Home() {
           </div>
           <div className="text-center">
             <div className="text-4xl font-bold mb-2" style={{ color: "var(--color-accent)" }}>
-              <FaSparkles size={48} />
+              <FaMagic size={48} />
             </div>
             <p className="text-sm" style={{ color: "var(--color-text)" }}>
               Easy Organization

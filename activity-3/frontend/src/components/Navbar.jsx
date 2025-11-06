@@ -15,7 +15,7 @@ export default function Navbar() {
            borderBottom: '3px solid var(--color-accent)'
          }}>
       
-      {/* Decorative wood grain overlay */}
+      {/* wood grain overlay */}
       <div className="absolute inset-0 opacity-10 pointer-events-none"
            style={{
              backgroundImage: `repeating-linear-gradient(
@@ -103,7 +103,7 @@ export default function Navbar() {
         </div>
       </div>
       
-      {/* Decorative bookshelf edge */}
+      {/* bookshelf edge */}
       <div className="absolute bottom-0 left-0 right-0 h-2"
            style={{
              background: 'linear-gradient(to right, var(--color-accent), #D4A574, var(--color-accent))',

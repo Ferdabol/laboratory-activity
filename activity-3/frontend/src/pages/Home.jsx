@@ -74,39 +74,6 @@ export default function Home() {
           </Link>
         ))}
       </div>
-
-      {/* Stats Section */}
-      <div className="card text-center py-8">
-        <h2 className="text-2xl font-bold mb-6" style={{ color: "var(--color-primary)" }}>
-          Start Building Your Collection Today
-        </h2>
-        <div className="flex flex-wrap justify-center gap-8">
-          <div className="text-center">
-            <div className="text-4xl font-bold mb-2" style={{ color: "var(--color-accent)" }}>
-              <FaInfinity size={48} />
-            </div>
-            <p className="text-sm" style={{ color: "var(--color-text)" }}>
-              Unlimited Books
-            </p>
-          </div>
-          <div className="text-center">
-            <div className="text-4xl font-bold mb-2" style={{ color: "var(--color-accent)" }}>
-              <FaMagic size={48} />
-            </div>
-            <p className="text-sm" style={{ color: "var(--color-text)" }}>
-              Easy Organization
-            </p>
-          </div>
-          <div className="text-center">
-            <div className="text-4xl font-bold mb-2" style={{ color: "var(--color-accent)" }}>
-              <FaBookOpen size={48} />
-            </div>
-            <p className="text-sm" style={{ color: "var(--color-text)" }}>
-              Reading Tracker
-            </p>
-          </div>
-        </div>
-      </div>
     </>
   );
 }

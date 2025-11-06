@@ -1,19 +1,20 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Button from "../components/Button";
-import { FaPen, FaBook, FaTimes } from 'react-icons/fa';
+import { FaPen, FaBook, FaTimes, FaEdit, FaTrash } from 'react-icons/fa';
 
 const Authors = () => {
   const [authors, setAuthors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     country: '',
     biography: ''
   });
 
-  // Mock data for initial load (if no localStorage data)
+  // Mock data 
   const mockAuthors = [
     {
       _id: '1',
@@ -70,10 +71,15 @@ const Authors = () => {
     setLoading(false);
   }, []);
 
-  const handleModalOpen = () => setIsModalOpen(true);
+  const handleModalOpen = (author = null) => {
+    setEditingItem(author);
+    setFormData(author ? { name: author.name, country: author.country, biography: author.biography } : { name: '', country: '', biography: '' });
+    setIsModalOpen(true);
+  };
   const handleModalClose = () => {
     setIsModalOpen(false);
-    setFormData({ name: '', country: '', biography: '' }); 
+    setEditingItem(null);
+    setFormData({ name: '', country: '', biography: '' });
   };
 
   const handleChange = (e) => {
@@ -82,11 +88,27 @@ const Authors = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newAuthor = { ...formData, _id: Date.now().toString(), bookCount: 0 };
-    const updatedAuthors = [...authors, newAuthor];
-    setAuthors(updatedAuthors);
-    localStorage.setItem('authors', JSON.stringify(updatedAuthors));
+    if (editingItem) {
+      // Update
+      const updatedAuthors = authors.map(author => author._id === editingItem._id ? { ...author, ...formData } : author);
+      setAuthors(updatedAuthors);
+      localStorage.setItem('authors', JSON.stringify(updatedAuthors));
+    } else {
+      // Create
+      const newAuthor = { ...formData, _id: Date.now().toString(), bookCount: 0 };
+      const updatedAuthors = [...authors, newAuthor];
+      setAuthors(updatedAuthors);
+      localStorage.setItem('authors', JSON.stringify(updatedAuthors));
+    }
     handleModalClose();
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm('Are you sure you want to delete this author?')) {
+      const updatedAuthors = authors.filter(author => author._id !== id);
+      setAuthors(updatedAuthors);
+      localStorage.setItem('authors', JSON.stringify(updatedAuthors));
+    }
   };
 
   return (
@@ -95,7 +117,7 @@ const Authors = () => {
         <h1 className="text-4xl font-bold" style={{ color: 'var(--color-primary)' }}>
           <FaPen className="inline mr-2" size={32} /> Authors Collection
         </h1>
-        <Button onClick={handleModalOpen}>+ Add New Author</Button>
+        <Button onClick={() => handleModalOpen()}>+ Add New Author</Button>
       </div>
 
       {loading ? (
@@ -105,13 +127,13 @@ const Authors = () => {
       ) : authors.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-xl mb-4" style={{ color: 'var(--color-text)' }}>No authors in your collection yet.</p>
-          <Button onClick={handleModalOpen}>Add Your First Author</Button>
+          <Button onClick={() => handleModalOpen()}>Add Your First Author</Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {authors.map((author) => (
-            <Link key={author._id} to={`/authors/${author._id}`}>
-              <div className="card group cursor-pointer transform transition-all duration-300 hover:-translate-y-2">
+            <div key={author._id} className="card group cursor-pointer transform transition-all duration-300 hover:-translate-y-2">
+              <Link to={`/authors/${author._id}`}>
                 <div className="flex items-center space-x-4 mb-3">
                   <div className="w-16 h-16 rounded-full flex items-center justify-center"
                        style={{ backgroundColor: 'var(--color-accent)' }}>
@@ -129,15 +151,22 @@ const Authors = () => {
                 <p className="text-sm line-clamp-2" style={{ color: 'var(--color-text)' }}>
                   {author.biography || 'No biography available'}
                 </p>
-                <div className="mt-4 pt-4 border-t flex justify-between items-center"
-                     style={{ borderColor: 'var(--color-accent)', opacity: 0.5 }}>
-                  <span className="text-sm font-medium" style={{ color: 'var(--color-primary)' }}>
-                    <FaBook className="inline mr-1" size={14} /> {author.bookCount || 0} books
-                  </span>
-                  <span className="text-sm opacity-75">View Details →</span>
+              </Link>
+              <div className="mt-4 pt-4 border-t flex justify-between items-center"
+                   style={{ borderColor: 'var(--color-accent)', opacity: 0.5 }}>
+                <span className="text-sm font-medium" style={{ color: 'var(--color-primary)' }}>
+                  <FaBook className="inline mr-1" size={14} /> {author.bookCount || 0} books
+                </span>
+                <div className="flex space-x-2">
+                  <button onClick={() => handleModalOpen(author)} className="text-blue-500 hover:text-blue-700">
+                    <FaEdit size={16} />
+                  </button>
+                  <button onClick={() => handleDelete(author._id)} className="text-red-500 hover:text-red-700">
+                    <FaTrash size={16} />
+                  </button>
                 </div>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       )}
@@ -186,7 +215,7 @@ const Authors = () => {
                 <div className="relative z-10">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-bold" style={{ color: 'var(--color-primary)' }}>
-                      <FaPen className="inline mr-2" size={24} /> Add New Author
+                      <FaPen className="inline mr-2" size={24} /> {editingItem ? 'Edit Author' : 'Add New Author'}
                     </h2>
                     <button onClick={handleModalClose} className="text-gray-500 hover:text-gray-700">
                       <FaTimes size={20} />
@@ -228,7 +257,7 @@ const Authors = () => {
                     </div>
                     <div className="flex justify-end space-x-2">
                       <Button type="button" onClick={handleModalClose} className="bg-gray-500">Cancel</Button>
-                      <Button type="submit">Add Author</Button>
+                      <Button type="submit">{editingItem ? 'Update Author' : 'Add Author'}</Button>
                     </div>
                   </form>
                 </div>

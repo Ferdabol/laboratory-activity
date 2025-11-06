@@ -5,12 +5,13 @@ import Authors from "./pages/Authors";
 import Categories from "./pages/Categories";
 import CategoryDetails from "./pages/CategoryDetails";
 import AuthorDetails from "./pages/AuthorDetails"; 
+import Home from "./pages/Home";
 function App() {
   return (
     <Router>
       <BookshelfLayout>
         <Routes>
-          <Route path="/" element={<Books />} />
+          <Route path="/" element={<Home />} />
           <Route path="/books" element={<Books />} />
           <Route path="/authors" element={<Authors />} />
           <Route path="/categories" element={<Categories />} />

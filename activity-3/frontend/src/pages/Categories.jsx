@@ -3,13 +3,14 @@ import { Link } from "react-router-dom";
 import Button from "../components/Button";
 import { 
   FaBookOpen, FaBook, FaFlask, FaScroll, FaUser, 
-  FaDragon, FaSearch, FaHeart, FaBolt, FaFeather, FaFolder, FaTimes 
+  FaDragon, FaSearch, FaHeart, FaBolt, FaFeather, FaFolder, FaTimes, FaEdit, FaTrash 
 } from 'react-icons/fa';
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     description: ''
@@ -90,9 +91,14 @@ const Categories = () => {
     setLoading(false);
   }, []);
 
-  const handleModalOpen = () => setIsModalOpen(true);
+  const handleModalOpen = (category = null) => {
+    setEditingItem(category);
+    setFormData(category ? { name: category.name, description: category.description } : { name: '', description: '' });
+    setIsModalOpen(true);
+  };
   const handleModalClose = () => {
     setIsModalOpen(false);
+    setEditingItem(null);
     setFormData({ name: '', description: '' }); 
   };
 
@@ -102,11 +108,27 @@ const Categories = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newCategory = { ...formData, _id: Date.now().toString(), bookCount: 0 };
-    const updatedCategories = [...categories, newCategory];
-    setCategories(updatedCategories);
-    localStorage.setItem('categories', JSON.stringify(updatedCategories));
+    if (editingItem) {
+      // Update
+      const updatedCategories = categories.map(category => category._id === editingItem._id ? { ...category, ...formData } : category);
+      setCategories(updatedCategories);
+      localStorage.setItem('categories', JSON.stringify(updatedCategories));
+    } else {
+      // Create
+      const newCategory = { ...formData, _id: Date.now().toString(), bookCount: 0 };
+      const updatedCategories = [...categories, newCategory];
+      setCategories(updatedCategories);
+      localStorage.setItem('categories', JSON.stringify(updatedCategories));
+    }
     handleModalClose();
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm('Are you sure you want to delete this category?')) {
+      const updatedCategories = categories.filter(category => category._id !== id);
+      setCategories(updatedCategories);
+      localStorage.setItem('categories', JSON.stringify(updatedCategories));
+    }
   };
 
   const categoryIcons = {
@@ -131,7 +153,7 @@ const Categories = () => {
         <h1 className="text-4xl font-bold" style={{ color: 'var(--color-primary)' }}>
           📂 Book Categories
         </h1>
-        <Button onClick={handleModalOpen}>+ Add New Category</Button>
+        <Button onClick={() => handleModalOpen()}>+ Add New Category</Button>
       </div>
 
       {loading ? (
@@ -141,13 +163,13 @@ const Categories = () => {
       ) : categories.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-xl mb-4" style={{ color: 'var(--color-text)' }}>No categories created yet.</p>
-          <Button onClick={handleModalOpen}>Add Your First Category</Button>
+          <Button onClick={() => handleModalOpen()}>Add Your First Category</Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {categories.map((category) => (
-            <Link key={category._id} to={`/categories/${category._id}`}>
-              <div className="card group cursor-pointer transform transition-all duration-300 hover:-translate-y-2 text-center">
+            <div key={category._id} className="card group cursor-pointer transform transition-all duration-300 hover:-translate-y-2 text-center">
+              <Link to={`/categories/${category._id}`}>
                 <div className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center text-4xl"
                      style={{ backgroundColor: 'var(--color-accent)' }}>
                   {getIcon(category.name)}
@@ -166,14 +188,23 @@ const Categories = () => {
                     📚 {category.bookCount || 0} books
                   </span>
                 </div>
-                
-                <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <span className="text-sm" style={{ color: 'var(--color-text)' }}>
-                    View Books →
-                  </span>
-                </div>
+              </Link>
+              
+              <div className="mt-3 flex justify-center space-x-2">
+                <button onClick={() => handleModalOpen(category)} className="text-blue-500 hover:text-blue-700">
+                  <FaEdit size={16} />
+                </button>
+                <button onClick={() => handleDelete(category._id)} className="text-red-500 hover:text-red-700">
+                  <FaTrash size={16} />
+                </button>
               </div>
-            </Link>
+              
+              <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <span className="text-sm" style={{ color: 'var(--color-text)' }}>
+                  View Books →
+                </span>
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -222,7 +253,7 @@ const Categories = () => {
                 <div className="relative z-10">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-bold" style={{ color: 'var(--color-primary)' }}>
-                      📂 Add New Category
+                      📂 {editingItem ? 'Edit Category' : 'Add New Category'}
                     </h2>
                     <button onClick={handleModalClose} className="text-gray-500 hover:text-gray-700">
                       <FaTimes size={20} />
@@ -253,7 +284,7 @@ const Categories = () => {
                     </div>
                     <div className="flex justify-end space-x-2">
                       <Button type="button" onClick={handleModalClose} className="bg-gray-500">Cancel</Button>
-                      <Button type="submit">Add Category</Button>
+                      <Button type="submit">{editingItem ? 'Update Category' : 'Add Category'}</Button>
                     </div>
                   </form>
                 </div>

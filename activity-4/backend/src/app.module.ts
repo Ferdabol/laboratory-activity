@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
 import { WeatherModule } from './weather/weather.module';
 
 @Module({
@@ -9,7 +8,6 @@ import { WeatherModule } from './weather/weather.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    MongooseModule.forRoot(process.env.MONGODB_URI || 'mongodb://localhost:27017/weather-app'),
     WeatherModule,
   ],
   controllers: [],

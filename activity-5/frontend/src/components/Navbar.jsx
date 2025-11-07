@@ -1,14 +1,12 @@
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { Link } from "react-router-dom";
+import { useState, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const isLoggedIn = localStorage.getItem('token'); // Check if user is logged in
+  const { user, logout } = useContext(AuthContext);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    window.location.href = '/';
-  };
+  const isLoggedIn = !!user;
 
   return (
     <nav className="bg-[#2D2424] shadow-lg sticky top-0 z-50">
@@ -29,8 +27,10 @@ const Navbar = () => {
             >
               Home
             </Link>
+
             {isLoggedIn ? (
               <>
+                <span className="text-[#E0C097] font-semibold">Hi, {user.name}</span>
                 <Link
                   to="/create"
                   className="text-[#E0C097] hover:text-[#B85C38] transition-colors font-semibold"
@@ -38,7 +38,7 @@ const Navbar = () => {
                   Create Post
                 </Link>
                 <button
-                  onClick={handleLogout}
+                  onClick={logout}
                   className="bg-[#B85C38] text-white px-4 py-2 rounded hover:bg-[#5C3D2E] transition-colors"
                 >
                   Logout
@@ -76,11 +76,7 @@ const Navbar = () => {
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              {isMenuOpen ? (
-                <path d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path d="M4 6h16M4 12h16M4 18h16" />
-              )}
+              {isMenuOpen ? <path d="M6 18L18 6M6 6l12 12" /> : <path d="M4 6h16M4 12h16M4 18h16" />}
             </svg>
           </button>
         </div>
@@ -95,8 +91,10 @@ const Navbar = () => {
             >
               Home
             </Link>
+
             {isLoggedIn ? (
               <>
+                <span className="block text-[#E0C097] py-2">Hi, {user.name}</span>
                 <Link
                   to="/create"
                   className="block text-[#E0C097] hover:text-[#B85C38] py-2 transition-colors"
@@ -105,7 +103,10 @@ const Navbar = () => {
                   Create Post
                 </Link>
                 <button
-                  onClick={handleLogout}
+                  onClick={() => {
+                    logout();
+                    setIsMenuOpen(false);
+                  }}
                   className="block w-full text-left text-[#E0C097] hover:text-[#B85C38] py-2 transition-colors"
                 >
                   Logout

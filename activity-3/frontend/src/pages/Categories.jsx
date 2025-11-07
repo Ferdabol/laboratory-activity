@@ -6,131 +6,103 @@ import {
   FaDragon, FaSearch, FaHeart, FaBolt, FaFeather, FaFolder, FaTimes, FaEdit, FaTrash 
 } from 'react-icons/fa';
 
+import { db } from "../../../backend/firebase";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
+
 const Categories = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
-    description: ''
+    name: "",
+    description: ""
   });
 
-  // Mock data 
-  const mockCategories = [
-    {
-      _id: '1',
-      name: 'Fiction',
-      description: 'Imaginative narratives and stories that explore the human experience through creative storytelling.',
-      bookCount: 24
-    },
-    {
-      _id: '2',
-      name: 'Non-Fiction',
-      description: 'Factual books including memoirs, essays, and informative works based on real events and research.',
-      bookCount: 18
-    },
-    {
-      _id: '3',
-      name: 'Science',
-      description: 'Books exploring scientific concepts, discoveries, and the natural world through research and inquiry.',
-      bookCount: 12
-    },
-    {
-      _id: '4',
-      name: 'History',
-      description: 'Chronicles of past events, civilizations, and historical figures that shaped our world.',
-      bookCount: 15
-    },
-    {
-      _id: '5',
-      name: 'Biography',
-      description: 'Life stories and personal accounts of notable individuals and their remarkable journeys.',
-      bookCount: 9
-    },
-    {
-      _id: '6',
-      name: 'Fantasy',
-      description: 'Magical worlds, mythical creatures, and epic adventures in realms beyond imagination.',
-      bookCount: 31
-    },
-    {
-      _id: '7',
-      name: 'Mystery',
-      description: 'Intriguing puzzles, detective stories, and suspenseful tales that keep you guessing.',
-      bookCount: 14
-    },
-    {
-      _id: '8',
-      name: 'Romance',
-      description: 'Love stories, relationships, and emotional journeys of the heart.',
-      bookCount: 22
-    },
-    {
-      _id: '9',
-      name: 'Thriller',
-      description: 'High-stakes suspense, action-packed narratives, and edge-of-your-seat excitement.',
-      bookCount: 16
-    },
-    {
-      _id: '10',
-      name: 'Poetry',
-      description: 'Artistic expressions of emotion, beauty, and human experience through verse and rhythm.',
-      bookCount: 7
-    }
-  ];
-
+  // ✅ FETCH categories from Firestore
   useEffect(() => {
-    const storedCategories = localStorage.getItem('categories');
-    if (storedCategories) {
-      setCategories(JSON.parse(storedCategories));
-    } else {
-      setCategories(mockCategories);
-      localStorage.setItem('categories', JSON.stringify(mockCategories));
-    }
-    setLoading(false);
+    const fetchCategories = async () => {
+      setLoading(true);
+      try {
+        const querySnapshot = await getDocs(collection(db, "categories"));
+        const categoriesData = querySnapshot.docs.map(doc => ({
+          _id: doc.id,
+          ...doc.data()
+        }));
+        setCategories(categoriesData);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+      setLoading(false);
+    };
+
+    fetchCategories();
   }, []);
 
+  // ✅ OPEN Modal
   const handleModalOpen = (category = null) => {
     setEditingItem(category);
-    setFormData(category ? { name: category.name, description: category.description } : { name: '', description: '' });
+    setFormData(
+      category
+        ? { name: category.name, description: category.description }
+        : { name: "", description: "" }
+    );
     setIsModalOpen(true);
   };
+
+  // ✅ CLOSE Modal
   const handleModalClose = () => {
     setIsModalOpen(false);
     setEditingItem(null);
-    setFormData({ name: '', description: '' }); 
+    setFormData({ name: "", description: "" });
   };
 
+  // ✅ Handle input
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  // ✅ SUBMIT (Create or Update)
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingItem) {
-      // Update
-      const updatedCategories = categories.map(category => category._id === editingItem._id ? { ...category, ...formData } : category);
-      setCategories(updatedCategories);
-      localStorage.setItem('categories', JSON.stringify(updatedCategories));
-    } else {
-      // Create
-      const newCategory = { ...formData, _id: Date.now().toString(), bookCount: 0 };
-      const updatedCategories = [...categories, newCategory];
-      setCategories(updatedCategories);
-      localStorage.setItem('categories', JSON.stringify(updatedCategories));
+
+    try {
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        bookCount: editingItem?.bookCount || 0
+      };
+
+      if (editingItem) {
+        await updateDoc(doc(db, "categories", editingItem._id), payload);
+        setCategories(categories.map(cat =>
+          cat._id === editingItem._id ? { ...cat, ...payload } : cat
+        ));
+      } else {
+        const docRef = await addDoc(collection(db, "categories"), payload);
+        setCategories([...categories, { _id: docRef.id, ...payload }]);
+      }
+
+      handleModalClose();
+    } catch (error) {
+      console.error("Error saving category:", error);
+      alert("Failed to save category. Check console for details.");
     }
-    handleModalClose();
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this category?')) {
-      const updatedCategories = categories.filter(category => category._id !== id);
-      setCategories(updatedCategories);
-      localStorage.setItem('categories', JSON.stringify(updatedCategories));
+  // ✅ DELETE
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this category?")) return;
+
+    try {
+      await deleteDoc(doc(db, "categories", id));
+      setCategories(categories.filter(cat => cat._id !== id));
+    } catch (error) {
+      console.error("Error deleting category:", error);
     }
   };
 
+  // Icon mapping
   const categoryIcons = {
     'Fiction': <FaBookOpen size={40} color="var(--color-text-light)" />,
     'Non-Fiction': <FaBook size={40} color="var(--color-text-light)" />,
@@ -171,25 +143,25 @@ const Categories = () => {
             <div key={category._id} className="card group cursor-pointer transform transition-all duration-300 hover:-translate-y-2 text-center">
               <Link to={`/categories/${category._id}`}>
                 <div className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center text-4xl"
-                     style={{ backgroundColor: 'var(--color-accent)' }}>
+                  style={{ backgroundColor: 'var(--color-accent)' }}>
                   {getIcon(category.name)}
                 </div>
-                
+
                 <h3 className="text-xl font-bold mb-2" style={{ color: 'var(--color-primary)' }}>
                   {category.name}
                 </h3>
-                
+
                 <p className="text-sm mb-4 line-clamp-2 min-h-[2.5rem]" style={{ color: 'var(--color-text)' }}>
                   {category.description || 'No description available'}
                 </p>
-                
+
                 <div className="pt-4 border-t" style={{ borderColor: 'var(--color-accent)', opacity: 0.5 }}>
                   <span className="text-lg font-semibold" style={{ color: 'var(--color-primary)' }}>
                     📚 {category.bookCount || 0} books
                   </span>
                 </div>
               </Link>
-              
+
               <div className="mt-3 flex justify-center space-x-2">
                 <button onClick={() => handleModalOpen(category)} className="text-blue-500 hover:text-blue-700">
                   <FaEdit size={16} />
@@ -198,7 +170,7 @@ const Categories = () => {
                   <FaTrash size={16} />
                 </button>
               </div>
-              
+
               <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                 <span className="text-sm" style={{ color: 'var(--color-text)' }}>
                   View Books →
@@ -209,56 +181,43 @@ const Categories = () => {
         </div>
       )}
 
-      {/* Modal */}
+      {/* ✅ Modal with labels untouched */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 backdrop-blur-sm"></div>     
-          {/* Modal content */}
+          <div className="absolute inset-0 backdrop-blur-sm"></div>
           <div className="relative flex items-center justify-center h-full">
-            <div className="relative rounded-lg shadow-2xl p-6 md:p-8 max-w-md w-full mx-4" 
-                 style={{ backgroundColor: 'var(--color-primary)' }}>
-              
-              {/* Wood grain texture effect */}
-              <div className="absolute inset-0 opacity-10 rounded-lg pointer-events-none" 
-                   style={{
-                     backgroundImage: `repeating-linear-gradient(
-                       90deg,
-                       transparent,
-                       transparent 2px,
-                       rgba(0,0,0,0.1) 2px,
-                       rgba(0,0,0,0.1) 4px
-                     )`
-                   }}>
+            <div className="relative rounded-lg shadow-2xl p-6 md:p-8 max-w-md w-full mx-4"
+              style={{ backgroundColor: 'var(--color-primary)' }}>
+
+              <div className="absolute inset-0 opacity-10 rounded-lg pointer-events-none"
+                style={{
+                  backgroundImage: `repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0,0,0,0.1) 2px,
+                    rgba(0,0,0,0.1) 4px
+                  )`
+                }}>
               </div>
-              
-              {/* Top shelf edge */}
-              <div className="absolute top-0 left-0 right-0 h-3 rounded-t-lg shadow-inner" 
-                   style={{ backgroundColor: 'var(--color-accent)' }}></div>
-              
-              {/* Content area  */}
-              <div className="relative rounded-md shadow-inner p-6 min-h-[40vh]" 
-                   style={{ backgroundColor: 'var(--color-bg)' }}>
-                
-                {/* Decorative shelf brackets */}
-                <div className="absolute top-2 left-2 w-6 h-6 border-t-4 border-l-4 rounded-tl-md opacity-40" 
-                     style={{ borderColor: 'var(--color-primary)' }}></div>
-                <div className="absolute top-2 right-2 w-6 h-6 border-t-4 border-r-4 rounded-tr-md opacity-40" 
-                     style={{ borderColor: 'var(--color-primary)' }}></div>
-                <div className="absolute bottom-2 left-2 w-6 h-6 border-b-4 border-l-4 rounded-bl-md opacity-40" 
-                     style={{ borderColor: 'var(--color-primary)' }}></div>
-                <div className="absolute bottom-2 right-2 w-6 h-6 border-b-4 border-r-4 rounded-br-md opacity-40" 
-                     style={{ borderColor: 'var(--color-primary)' }}></div>
-                
-                {/* Main content */}
+
+              <div className="absolute top-0 left-0 right-0 h-3 rounded-t-lg shadow-inner"
+                style={{ backgroundColor: 'var(--color-accent)' }}></div>
+
+              <div className="relative rounded-md shadow-inner p-6 min-h-[40vh]"
+                style={{ backgroundColor: 'var(--color-bg)' }}>
+
                 <div className="relative z-10">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-bold" style={{ color: 'var(--color-primary)' }}>
-                      📂 {editingItem ? 'Edit Category' : 'Add New Category'}
+                      📂 {editingItem ? "Edit Category" : "Add New Category"}
                     </h2>
                     <button onClick={handleModalClose} className="text-gray-500 hover:text-gray-700">
                       <FaTimes size={20} />
                     </button>
                   </div>
+
+                  {/* ✅ FORM WITH LABELS */}
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium" style={{ color: 'var(--color-text)' }}>Name</label>
@@ -282,23 +241,17 @@ const Categories = () => {
                         style={{ borderColor: 'var(--color-accent)' }}
                       />
                     </div>
+
                     <div className="flex justify-end space-x-2">
                       <Button type="button" onClick={handleModalClose} className="bg-gray-500">Cancel</Button>
-                      <Button type="submit">{editingItem ? 'Update Category' : 'Add Category'}</Button>
+                      <Button type="submit">{editingItem ? "Update Category" : "Add Category"}</Button>
                     </div>
                   </form>
                 </div>
               </div>
-              
-              {/* Bottom shelf edge */}
-              <div className="absolute bottom-0 left-0 right-0 h-3 rounded-b-lg shadow-md" 
-                   style={{ backgroundColor: 'var(--color-accent)' }}></div>
-              
-              {/* Side supports */}
-              <div className="absolute top-0 left-0 w-2 h-full rounded-l-lg" 
-                   style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.2), transparent)' }}></div>
-              <div className="absolute top-0 right-0 w-2 h-full rounded-r-lg" 
-                   style={{ background: 'linear-gradient(to left, rgba(0,0,0,0.2), transparent)' }}></div>
+
+              <div className="absolute bottom-0 left-0 right-0 h-3 rounded-b-lg shadow-md"
+                style={{ backgroundColor: 'var(--color-accent)' }}></div>
             </div>
           </div>
         </div>

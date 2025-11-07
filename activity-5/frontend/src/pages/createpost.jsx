@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PrimaryButton, SecondaryButton } from '../components/Buttons';
+import { db, auth } from '../../../backend/firebase'; // import Firestore & Auth
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const CreatePost = () => {
   const navigate = useNavigate();
@@ -15,24 +17,41 @@ const CreatePost = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.title.trim() || !formData.content.trim()) {
       setError('Title and content are required');
+      return;
+    }
+
+    if (!auth.currentUser) {
+      setError('You must be logged in to create a post');
       return;
     }
 
     setIsSubmitting(true);
     setError('');
 
-    setIsSubmitting(false);
+    try {
+      await addDoc(collection(db, 'post'), {
+        ...formData,
+        authorId: auth.currentUser.uid,  // link post to logged-in user
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        commentsCount: 0
+      });
+
+      navigate('/'); // redirect to posts list after creation
+    } catch (err) {
+      console.error('Error creating post:', err);
+      setError('Failed to publish post');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
@@ -116,9 +135,7 @@ const CreatePost = () => {
                 src={formData.image}
                 alt="Preview"
                 className="max-w-full h-48 object-cover rounded-lg"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                }}
+                onError={(e) => { e.target.style.display = 'none'; }}
               />
             </div>
           )}
@@ -140,9 +157,7 @@ const CreatePost = () => {
             disabled={isSubmitting}
             required
           />
-          <p className="mt-2 text-sm text-[#5C3D2E]">
-            {formData.content.length} characters
-          </p>
+          <p className="mt-2 text-sm text-[#5C3D2E]">{formData.content.length} characters</p>
         </div>
 
         {/* Action Buttons */}

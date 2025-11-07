@@ -2,6 +2,12 @@ import { useState, useEffect } from "react";
 import BookCard from "../components/Bookcard";
 import Button from "../components/Button";
 import { FaBookOpen, FaTimes, FaEdit, FaTrash } from 'react-icons/fa';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { db } from "../../../backend/firebase";
+// 
+
+
+
 
 const Books = () => {
   const [books, setBooks] = useState([]);
@@ -17,68 +23,38 @@ const Books = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isDeleteMode, setIsDeleteMode] = useState(false);
 
-  // Mock data 
-  const mockBooks = [
-    {
-      _id: '1',
-      title: 'To Kill a Mockingbird',
-      author: 'Harper Lee',
-      genre: 'Fiction',
-      publishedYear: 1960
-    },
-    {
-      _id: '2',
-      title: '1984',
-      author: 'George Orwell',
-      genre: 'Dystopian',
-      publishedYear: 1949
-    },
-    {
-      _id: '3',
-      title: 'Pride and Prejudice',
-      author: 'Jane Austen',
-      genre: 'Romance',
-      publishedYear: 1813
-    },
-    {
-      _id: '4',
-      title: 'The Great Gatsby',
-      author: 'F. Scott Fitzgerald',
-      genre: 'Fiction',
-      publishedYear: 1925
-    },
-    {
-      _id: '5',
-      title: 'Harry Potter and the Sorcerer\'s Stone',
-      author: 'J.K. Rowling',
-      genre: 'Fantasy',
-      publishedYear: 1997
-    },
-    {
-      _id: '6',
-      title: 'The Hobbit',
-      author: 'J.R.R. Tolkien',
-      genre: 'Fantasy',
-      publishedYear: 1937
-    }
-  ];
-
+  
   useEffect(() => {
-    const storedBooks = localStorage.getItem('books');
-    if (storedBooks) {
-      setBooks(JSON.parse(storedBooks));
-    } else {
-      setBooks(mockBooks);
-      localStorage.setItem('books', JSON.stringify(mockBooks));
+  const fetchBooks = async () => {  
+    setLoading(true);
+    try {
+      const querySnapshot = await getDocs(collection(db, "books"));
+      const booksData = querySnapshot.docs.map(doc => ({ _id: doc.id, ...doc.data() }));
+      setBooks(booksData);
+      console.log("Fetched books from Firestore:", booksData);
+      
+      
+      localStorage.setItem('books', JSON.stringify(booksData));
+      
+    }catch (error) {
+      console.error("Error fetching books: ", error);
     }
     setLoading(false);
-  }, []);
+  }
+  
+  fetchBooks();
+}, []);
+  
+  
+
+ 
+  
 
   const handleModalOpen = (book = null) => {
     setEditingItem(book);
     setFormData(book ? { title: book.title, author: book.author, genre: book.genre, publishedYear: book.publishedYear } : { title: '', author: '', genre: '', publishedYear: '' });
     setIsModalOpen(true);
-    setIsEditMode(false); // Reset mode after opening modal
+    setIsEditMode(false); 
   };
   const handleModalClose = () => {
     setIsModalOpen(false);
@@ -90,28 +66,53 @@ const Books = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingItem) {
-      // Update
-      const updatedBooks = books.map(book => book._id === editingItem._id ? { ...book, ...formData } : book);
-      setBooks(updatedBooks);
-      localStorage.setItem('books', JSON.stringify(updatedBooks));
-    } else {
-      // Create
-      const newBook = { ...formData, _id: Date.now().toString() };
-      const updatedBooks = [...books, newBook];
-      setBooks(updatedBooks);
-      localStorage.setItem('books', JSON.stringify(updatedBooks));
+    try {
+      const payload = {
+        title: formData.title,
+        author: formData.author,
+        genre: formData.genre,
+        publishedYear: formData.publishedYear ? Number(formData.publishedYear) : undefined,
+      };
+
+      if (editingItem) {
+        // Update Firestore
+        await updateDoc(doc(db, "books", editingItem._id), payload);
+        const updatedBooks = books.map(book =>
+          book._id === editingItem._id ? { ...book, ...payload } : book
+        );
+        setBooks(updatedBooks);
+        localStorage.setItem('books', JSON.stringify(updatedBooks));
+      } else {
+        // Create in Firestore
+        const colRef = collection(db, "books");
+        const docRef = await addDoc(colRef, payload);
+        const newBook = { _id: docRef.id, ...payload };
+        const updatedBooks = [...books, newBook];
+        setBooks(updatedBooks);
+        localStorage.setItem('books', JSON.stringify(updatedBooks));
+      }
+
+      handleModalClose();
+    } catch (error) {
+      console.error("Error saving book to Firestore:", error);
+      alert("Failed to save book. Check console for details.");
     }
-    handleModalClose();
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this book?')) {
+  // changed code: delete from Firestore
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this book?')) return;
+    try {
+      await deleteDoc(doc(db, "books", id));
       const updatedBooks = books.filter(book => book._id !== id);
       setBooks(updatedBooks);
       localStorage.setItem('books', JSON.stringify(updatedBooks));
+    } catch (error) {
+      console.error("Error deleting book from Firestore:", error);
+      alert("Failed to delete book. Check console for details.");
     }
     setIsDeleteMode(false); 
   };

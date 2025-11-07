@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from '../../../backend/firebase';
 import { PrimaryButton, OutlineButton } from '../components/Buttons';
 
 const Register = () => {
@@ -25,17 +28,19 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+    const { name, email, password, confirmPassword } = formData;
+
+    if (!name || !email || !password || !confirmPassword) {
       setError('Please fill in all fields');
       return;
     }
 
-    if (formData.password !== formData.confirmPassword) {
+    if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
 
-    if (formData.password.length < 6) {
+    if (password.length < 6) {
       setError('Password must be at least 6 characters long');
       return;
     }
@@ -43,7 +48,24 @@ const Register = () => {
     setIsSubmitting(true);
     setError('');
 
-    // API call will be added here later
+    try {
+      // Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Save user info in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        name,
+        email,
+        createdAt: serverTimestamp()
+      });
+
+      // Redirect to home
+      navigate('/');
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    }
 
     setIsSubmitting(false);
   };
@@ -190,33 +212,6 @@ const Register = () => {
               </OutlineButton>
             </Link>
           </div>
-        </div>
-
-        {/* Benefits Section */}
-        <div className="mt-6 bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-bold text-[#5C3D2E] mb-3 font-['Merriweather']">
-            Why Join BlogSpace?
-          </h3>
-          <ul className="space-y-2 text-sm text-[#2D2424]">
-            <li className="flex items-start">
-              <svg className="w-5 h-5 text-[#B85C38] mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              Share your stories with a global audience
-            </li>
-            <li className="flex items-start">
-              <svg className="w-5 h-5 text-[#B85C38] mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              Connect with like-minded writers
-            </li>
-            <li className="flex items-start">
-              <svg className="w-5 h-5 text-[#B85C38] mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              Build your personal brand
-            </li>
-          </ul>
         </div>
       </div>
     </div>

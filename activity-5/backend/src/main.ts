@@ -13,10 +13,10 @@ async function bootstrap() {
   });
 
   const config = new DocumentBuilder()
-    .setTitle('Notes App API')
-    .setDescription('API for managing notes')
+    .setTitle('Blog API')
+    .setDescription('API for managing blog posts')
     .setVersion('1.0')
-    .addTag('notes')
+    .addTag('posts')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

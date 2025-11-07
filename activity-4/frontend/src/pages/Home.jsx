@@ -9,7 +9,7 @@ const Home = ({ onWeatherChange }) => {
   const currentWeather = {
     location: 'Your Location',
     temperature: 24,
-    condition: 'stormy', 
+    condition: 'rainy', 
     humidity: 50
   };
 
@@ -45,7 +45,7 @@ const Home = ({ onWeatherChange }) => {
           Weather-Weather-Lang
         </h1>
         <p className="text-xl mb-8" style={{ color: 'var(--color-night-700)', fontFamily: 'var(--font-body)' }}>
-          view current weather and a 5-day forecast.
+          view current weather and the 8-day forecast.
         </p>
         <div className="flex justify-center space-x-4">
           <Link to="/forecast">

@@ -17,21 +17,30 @@ const Forecast = ({ onWeatherChange }) => {
         { day: 'Tomorrow', temperature: 20, condition: 'Rainy', humidity: 75 },
         { day: 'Fri', temperature: 17, condition: 'Sunny', humidity: 60 },
         { day: 'Sat', temperature: 19, condition: 'Cloudy', humidity: 70 },
-        { day: 'Sun', temperature: 16, condition: 'Stormy', humidity: 85 }
+        { day: 'Sun', temperature: 16, condition: 'Stormy', humidity: 85 },
+        { day: 'Mon', temperature: 18, condition: 'Rainy', humidity: 72 },
+        { day: 'Tue', temperature: 21, condition: 'Sunny', humidity: 58 },
+        { day: 'Wed', temperature: 19, condition: 'Cloudy', humidity: 68 }
       ],
       'tokyo': [
         { day: 'Today', temperature: 28, condition: 'Sunny', humidity: 55 },
         { day: 'Tomorrow', temperature: 30, condition: 'Cloudy', humidity: 60 },
         { day: 'Fri', temperature: 27, condition: 'Rainy', humidity: 70 },
         { day: 'Sat', temperature: 29, condition: 'Sunny', humidity: 50 },
-        { day: 'Sun', temperature: 26, condition: 'Stormy', humidity: 80 }
+        { day: 'Sun', temperature: 26, condition: 'Stormy', humidity: 80 },
+        { day: 'Mon', temperature: 28, condition: 'Cloudy', humidity: 62 },
+        { day: 'Tue', temperature: 31, condition: 'Sunny', humidity: 48 },
+        { day: 'Wed', temperature: 29, condition: 'Rainy', humidity: 75 }
       ],
       'new york': [
         { day: 'Today', temperature: 22, condition: 'Sunny', humidity: 50 },
         { day: 'Tomorrow', temperature: 24, condition: 'Cloudy', humidity: 55 },
         { day: 'Fri', temperature: 21, condition: 'Rainy', humidity: 65 },
         { day: 'Sat', temperature: 23, condition: 'Sunny', humidity: 45 },
-        { day: 'Sun', temperature: 20, condition: 'Stormy', humidity: 75 }
+        { day: 'Sun', temperature: 20, condition: 'Stormy', humidity: 75 },
+        { day: 'Mon', temperature: 22, condition: 'Cloudy', humidity: 52 },
+        { day: 'Tue', temperature: 25, condition: 'Sunny', humidity: 42 },
+        { day: 'Wed', temperature: 23, condition: 'Rainy', humidity: 68 }
       ]
     };
     return cityData[city.toLowerCase()] || [
@@ -39,7 +48,10 @@ const Forecast = ({ onWeatherChange }) => {
       { day: 'Tomorrow', temperature: 28, condition: 'Cloudy', humidity: 60 },
       { day: 'Fri', temperature: 25, condition: 'Rainy', humidity: 70 },
       { day: 'Sat', temperature: 27, condition: 'Sunny', humidity: 50 },
-      { day: 'Sun', temperature: 24, condition: 'Stormy', humidity: 80 }
+      { day: 'Sun', temperature: 24, condition: 'Stormy', humidity: 80 },
+      { day: 'Mon', temperature: 26, condition: 'Cloudy', humidity: 57 },
+      { day: 'Tue', temperature: 29, condition: 'Sunny', humidity: 45 },
+      { day: 'Wed', temperature: 27, condition: 'Rainy', humidity: 72 }
     ];
   };
 
@@ -105,7 +117,7 @@ const Forecast = ({ onWeatherChange }) => {
           className="text-5xl font-bold mb-4"
           style={{ color: 'var(--color-night-700)', fontFamily: 'var(--font-display)' }}
         >
-          5-Day Forecast for {city}
+          8-Day Forecast for {city}
         </h1>
         <p
           className="text-lg mb-6"
@@ -124,11 +136,11 @@ const Forecast = ({ onWeatherChange }) => {
       </div>
 
       {/* Forecast Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
+      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-4 md:gap-6">
         {forecast.map((day, index) => (
           <div
             key={index}
-            className="flex flex-col items-center justify-center bg-white/40 backdrop-blur-md rounded-2xl p-6 shadow-lg transition-transform duration-300 hover:scale-105"
+            className="flex flex-col items-center justify-center bg-white/40 backdrop-blur-md rounded-2xl p-4 md:p-6 shadow-lg transition-transform duration-300 hover:scale-105"
             style={{
               backgroundColor: 'rgba(255, 255, 255, 0.3)',
               boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
@@ -136,7 +148,7 @@ const Forecast = ({ onWeatherChange }) => {
             onMouseEnter={() => handleCardHover(day.condition)}
           >
             <h2
-              className="text-xl font-semibold mb-2"
+              className="text-lg md:text-xl font-semibold mb-2"
               style={{ color: 'var(--color-night-700)', fontFamily: 'var(--font-display)' }}
             >
               {day.day}

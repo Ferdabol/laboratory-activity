@@ -14,7 +14,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Notes App API')
-    .setDescription('API for bookshelf')
+    .setDescription('API for managing notes')
     .setVersion('1.0')
     .addTag('notes')
     .build();

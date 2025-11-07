@@ -46,7 +46,7 @@ const CreatePost = () => {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-[#5C3D2E] mb-2 font-['Merriweather']">
-          Create New Post
+          Create new Post
         </h1>
         <p className="text-[#2D2424]">Share your story with the world</p>
       </div>

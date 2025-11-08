@@ -4,7 +4,7 @@
 /build
 
 
-.serviceAccountKey.json
+activity-3/backend/.gitignore
 # Logs
 logs
 *.log

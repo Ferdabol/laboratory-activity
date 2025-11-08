@@ -39,13 +39,14 @@ const CreatePost = () => {
     try {
       await addDoc(collection(db, 'post'), {
         ...formData,
-        authorId: auth.currentUser.uid,  // link post to logged-in user
+        authorId: auth.currentUser.uid,
+        authorName: auth.currentUser.displayName || auth.currentUser.email || 'Anonymous',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         commentsCount: 0
       });
 
-      navigate('/'); // redirect to posts list after creation
+      navigate('/');
     } catch (err) {
       console.error('Error creating post:', err);
       setError('Failed to publish post');

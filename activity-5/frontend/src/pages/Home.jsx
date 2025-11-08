@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import PostCard from '../components/Postcard';
-import { db } from '../../../backend/firebase'; // make sure your firebase is initialized
-import { collection, query, orderBy, getDocs, limit, startAfter } from "firebase/firestore";
+import { db } from '../../../backend/firebase';
+import { collection, query, orderBy, getDocs } from "firebase/firestore";
+import { AuthContext } from '../context/AuthContext';
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
@@ -10,6 +11,9 @@ const Home = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const postsPerPage = 9;
+
+  const { user } = useContext(AuthContext);
+  const isLoggedIn = !!user;
 
   useEffect(() => {
     fetchPosts();
@@ -83,8 +87,8 @@ const Home = () => {
     <div className="space-y-8">
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-[#352a24] to-[#B85C38] rounded-lg shadow-xl p-8 md:p-12 text-white">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 font-['Merriweather']">Welcome to BlogSpace</h1>
-        <p className="text-lg md:text-xl mb-6 max-w-2xl">Discover stories, thinking, and expertise from writers on any topic.</p>
+        <h1 className="text-4xl md:text-5xl font-bold mb-4 font-['Merriweather']">Blog-Blogan</h1>
+        <p className="text-lg md:text-xl mb-6 max-w-2xl">Share your own blog and view other peoples blogs</p>
         <Link to="/create" className="inline-block bg-white text-[#5C3D2E] px-6 py-3 rounded-lg font-semibold hover:bg-[#E0C097] transition-colors">Start Writing</Link>
       </section>
 
@@ -121,12 +125,14 @@ const Home = () => {
         )}
       </section>
 
-      {/* Call to Action */}
-      <section className="bg-white rounded-lg shadow-md p-8 text-center">
-        <h2 className="text-2xl font-bold text-[#5C3D2E] mb-4 font-['Merriweather']">Ready to Share Your Story?</h2>
-        <p className="text-[#2D2424] mb-6">Join our community of writers and share your unique perspective.</p>
-        <Link to="/register" className="inline-block bg-[#B85C38] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#5C3D2E] transition-colors">Get Started</Link>
-      </section>
+      {/* Call to Action - Only show when not logged in */}
+      {!isLoggedIn && (
+        <section className="bg-white rounded-lg shadow-md p-8 text-center">
+          <h2 className="text-2xl font-bold text-[#5C3D2E] mb-4 font-['Merriweather']">Ready to Share Your Story?</h2>
+          <p className="text-[#2D2424] mb-6">Join our community of writers and share your unique perspective.</p>
+          <Link to="/register" className="inline-block bg-[#3a2117] text-white px-8 py-3 rounded-lg font-semibold">Get Started</Link>
+        </section>
+      )}
     </div>
   );
 };

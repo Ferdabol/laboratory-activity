@@ -15,7 +15,7 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center">
             <h1 className="text-2xl font-bold text-[#E0C097] font-['Merriweather']">
-              BlogSpace
+              Blog-Blogan
             </h1>
           </Link>
 
@@ -39,7 +39,7 @@ const Navbar = () => {
                 </Link>
                 <button
                   onClick={logout}
-                  className="bg-[#B85C38] text-white px-4 py-2 rounded hover:bg-[#5C3D2E] transition-colors"
+                  className="bg-[#B85C38] text-white px-4 py-2 rounded hover:bg-[#5C3D2E] transition-colors font-semibold"
                 >
                   Logout
                 </button>
@@ -54,7 +54,7 @@ const Navbar = () => {
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-[#B85C38] text-white px-4 py-2 rounded hover:bg-[#5C3D2E] transition-colors"
+                  className="bg-[#3a2117] text-white px-4 py-2 rounded font-semibold"
                 >
                   Register
                 </Link>

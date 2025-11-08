@@ -1,22 +1,22 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-
+  // Enable CORS for frontend
   app.enableCors({
-    origin: 'http://localhost:5173',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    origin: 'http://localhost:5173', // Vite default port
     credentials: true,
   });
 
   const config = new DocumentBuilder()
     .setTitle('Blog API')
-    .setDescription('API for managing blog posts')
+    .setDescription('API for managing blog posts and comments')
     .setVersion('1.0')
-    .addTag('posts')
+    .addTag('Blogs')
+    .addTag('Comments')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

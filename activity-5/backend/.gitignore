@@ -71,3 +71,4 @@ build/
 # IDE
 .vscode/
 .idea/
+serviceAccountKey.json

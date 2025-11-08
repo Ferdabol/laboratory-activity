@@ -3,6 +3,7 @@
 /node_modules
 /build
 
+
 # Logs
 logs
 *.log
@@ -14,6 +15,7 @@ lerna-debug.log*
 
 # OS
 .DS_Store
+serviceAccountKey.json
 
 # Tests
 /coverage

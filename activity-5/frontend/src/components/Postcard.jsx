@@ -1,8 +1,38 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../../backend/firebase';
 
 const PostCard = ({ post }) => {
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
+  const [authorName, setAuthorName] = useState('Anonymous');
+
+  // Fetch author info from Firestore
+  useEffect(() => {
+    const fetchAuthor = async () => {
+      if (post.authorId) {
+        try {
+          const userRef = doc(db, 'users', post.authorId);
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            setAuthorName(userSnap.data().name || 'Anonymous');
+          }
+        } catch (err) {
+          console.error('Error fetching author:', err);
+        }
+      }
+    };
+    fetchAuthor();
+  }, [post.authorId]);
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return '';
+    let date;
+    // Handle Firestore Timestamp or JS Date
+    if (timestamp.toDate) {
+      date = timestamp.toDate();
+    } else {
+      date = new Date(timestamp);
+    }
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -11,8 +41,8 @@ const PostCard = ({ post }) => {
   };
 
   const truncateContent = (content, maxLength = 150) => {
-    if (content.length <= maxLength) return content;
-    return content.substring(0, maxLength) + '...';
+    if (!content) return '';
+    return content.length <= maxLength ? content : content.substring(0, maxLength) + '...';
   };
 
   return (
@@ -53,15 +83,11 @@ const PostCard = ({ post }) => {
             {/* Author Info */}
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#B85C38] to-[#5C3D2E] flex items-center justify-center text-white text-sm font-bold">
-                {post.author?.name?.charAt(0).toUpperCase() || 'A'}
+                {authorName.charAt(0).toUpperCase()}
               </div>
               <div>
-                <p className="text-sm font-semibold text-[#2D2424]">
-                  {post.author?.name || 'Anonymous'}
-                </p>
-                <p className="text-xs text-[#5C3D2E]">
-                  {formatDate(post.createdAt)}
-                </p>
+                <p className="text-sm font-semibold text-[#2D2424]">{authorName}</p>
+                <p className="text-xs text-[#5C3D2E]">{formatDate(post.createdAt)}</p>
               </div>
             </div>
 

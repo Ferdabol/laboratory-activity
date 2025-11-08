@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { doc, getDoc, collection, query, where, orderBy, getDocs, deleteDoc } from "firebase/firestore";
-import { auth, db } from '../../../backend/firebase';
+import { db } from '../../../backend/firebase';
+import { AuthContext } from '../context/AuthContext';
 import CommentForm from '../components/Commentform';
 import CommentList from '../components/Commentlist';
 import { PrimaryButton, DangerButton, SecondaryButton } from '../components/Buttons';
@@ -9,19 +10,19 @@ import { PrimaryButton, DangerButton, SecondaryButton } from '../components/Butt
 const PostDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext); // Use context
+  const isLoggedIn = !!user;
+
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const user = auth.currentUser;
-  const isLoggedIn = !!user;
-
   useEffect(() => {
     fetchPost();
     fetchComments();
-  }, [id]);
+  }, [id, user]); // re-fetch if user changes (logout/login)
 
   const fetchPost = async () => {
     setLoading(true);
@@ -105,9 +106,6 @@ const PostDetail = () => {
   if (error || !post) return (
     <div className="max-w-4xl mx-auto text-center py-12">
       <div className="bg-white rounded-lg shadow-md p-8">
-        <svg className="w-20 h-20 mx-auto mb-4 text-[#E0C097]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
         <h2 className="text-2xl font-bold text-[#5C3D2E] mb-4 font-['Merriweather']">Post Not Found</h2>
         <p className="text-[#2D2424] mb-6">{error || 'The post you are looking for does not exist.'}</p>
         <Link to="/"><PrimaryButton>Back to Home</PrimaryButton></Link>
@@ -160,17 +158,10 @@ const PostDetail = () => {
           <div className="flex items-center space-x-6 mt-8 pt-6 border-t border-[#E0C097] text-[#5C3D2E]">
             {post.views !== undefined && (
               <div className="flex items-center space-x-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                </svg>
                 <span>{post.views} views</span>
               </div>
             )}
             <div className="flex items-center space-x-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-              </svg>
               <span>{comments.length} comments</span>
             </div>
           </div>
@@ -188,7 +179,6 @@ const PostDetail = () => {
             </p>
           </div>
         )}
-
         <CommentList comments={comments} onDeleteComment={handleDeleteComment} />
       </div>
     </div>

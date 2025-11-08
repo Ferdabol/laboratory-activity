@@ -54,3 +54,20 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Service Account Keys
+serviceAccountKey.json
+
+# Environment variables
+.env
+
+# Node modules
+node_modules/
+
+# Build output
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/

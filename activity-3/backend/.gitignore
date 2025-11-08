@@ -3,8 +3,7 @@
 /node_modules
 /build
 
-
-activity-3/backend/.gitignore
+backend/serviceAccountKey.json
 # Logs
 logs
 *.log

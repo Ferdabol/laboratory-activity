@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "../../../backend/firebase";
 import { PrimaryButton, SecondaryButton } from "./Buttons";
 
 const CommentForm = ({ postId, onCommentAdded }) => {
@@ -14,31 +16,31 @@ const CommentForm = ({ postId, onCommentAdded }) => {
       return;
     }
 
-    const token = localStorage.getItem("token");
-    if (!token) {
+    const userId = localStorage.getItem("userId"); // get from localStorage
+    if (!userId) {
       setError("You must be logged in to comment.");
       return;
     }
+
+    const userName = localStorage.getItem("username") || "Anonymous"; // optional, store name if you want
 
     setLoading(true);
     setError("");
 
     try {
-      const res = await fetch(`http://localhost:5000/api/posts/${postId}/comments`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ content: comment }),
-      });
+      const commentsRef = collection(db, "post", postId, "comments");
 
-      if (!res.ok) throw new Error("Failed");
+      const newComment = {
+        content: comment,
+        userId: userId, // from localStorage
+        userName: userName,
+        createdAt: serverTimestamp(),
+      };
 
-      const data = await res.json();
+      const docRef = await addDoc(commentsRef, newComment);
       setComment("");
 
-      if (onCommentAdded) onCommentAdded(data);
+      if (onCommentAdded) onCommentAdded({ id: docRef.id, ...newComment });
     } catch (err) {
       console.error(err);
       setError("Failed to post comment. Please try again.");
@@ -65,7 +67,10 @@ const CommentForm = ({ postId, onCommentAdded }) => {
           placeholder="Share your thoughts..."
           rows={4}
           disabled={loading}
-          className="w-full px-4 py-3 border-2 border-[#E0C097] rounded-lg focus:outline-none focus:border-[#B85C38] focus:ring-2 focus:ring-[#B85C38] focus:ring-opacity-20 transition-colors resize-none text-[#2D2424]"
+          className="w-full px-4 py-3 border-2 border-[#E0C097] rounded-lg 
+                     focus:outline-none focus:border-[#B85C38] focus:ring-2 
+                     focus:ring-[#B85C38]/20 transition-colors 
+                     resize-none text-[#2D2424]"
         />
 
         {error && <p className="text-sm text-red-600">{error}</p>}
@@ -76,17 +81,16 @@ const CommentForm = ({ postId, onCommentAdded }) => {
           </PrimaryButton>
 
           {comment && (
-            <SecondaryButton type="button" onClick={handleCancel} disabled={loading}>
+            <SecondaryButton
+              type="button"
+              onClick={handleCancel}
+              disabled={loading}
+            >
               Cancel
             </SecondaryButton>
-            //
           )}
         </div>
       </form>
-
-      <p className="mt-4 text-sm text-[#5C3D2E]">
-        💡 <strong>Tip:</strong> Be respectful and constructive in your comments.
-      </p>
     </div>
   );
 };

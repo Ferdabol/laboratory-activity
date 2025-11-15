@@ -23,16 +23,26 @@ export const AuthProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-  const login = (userId) => {
-    localStorage.setItem("userId", userId);
+    const login = (userId) => {
     const userRef = doc(db, "users", userId);
+
+    // Listen to Firestore document
     onSnapshot(userRef, (docSnap) => {
-      if (docSnap.exists()) setUser({ id: userId, ...docSnap.data() });
+      if (docSnap.exists()) {
+        const userData = docSnap.data();
+        setUser({ id: userId, ...userData });
+
+        // Store in localStorage
+        localStorage.setItem("userId", userId);
+        localStorage.setItem("username", userData.name || "Anonymous");
+      }
     });
   };
 
+
   const logout = () => {
     localStorage.removeItem("userId");
+    localStorage.removeItem("username");
     setUser(null);
   };
 

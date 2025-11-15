@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { doc, getDoc, collection, query, where, orderBy, getDocs, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, orderBy, onSnapshot, deleteDoc } from "firebase/firestore";
 import { db } from '../../../backend/firebase';
 import { AuthContext } from '../context/AuthContext';
 import CommentForm from '../components/Commentform';
@@ -19,57 +19,62 @@ const PostDetail = () => {
   const [error, setError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Fetch post data
   useEffect(() => {
-    fetchPost();
-    fetchComments();
-  }, [id, user]); // re-fetch if user changes (logout/login)
-
-  const fetchPost = async () => {
-    setLoading(true);
-    try {
-      const postRef = doc(db, "post", id);
-      const postSnap = await getDoc(postRef);
-      if (postSnap.exists()) {
-        const postData = postSnap.data();
-        setPost({
-          id: postSnap.id,
-          ...postData,
-          isOwner: user?.uid === postData.authorId
-        });
-      } else {
-        setError('Post not found');
+    const fetchPost = async () => {
+      setLoading(true);
+      try {
+        const postRef = doc(db, "post", id);
+        const postSnap = await getDoc(postRef);
+        if (postSnap.exists()) {
+          const postData = postSnap.data();
+          setPost({
+            id: postSnap.id,
+            ...postData,
+            isOwner: user?.uid === postData.authorId
+          });
+        } else {
+          setError('Post not found');
+        }
+      } catch (err) {
+        console.error('Error fetching post:', err);
+        setError('Failed to load post');
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Error fetching post:', err);
-      setError('Failed to load post');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  const fetchComments = async () => {
-    try {
-      const commentsRef = collection(db, "comments");
-      const q = query(commentsRef, where("postId", "==", id), orderBy("createdAt", "desc"));
-      const querySnapshot = await getDocs(q);
-      const fetchedComments = querySnapshot.docs.map(doc => ({
+    fetchPost();
+  }, [id, user]);
+
+  // Real-time comments listener (subcollection)
+  useEffect(() => {
+    const commentsRef = collection(db, "post", id, "comments");
+    const q = query(commentsRef, orderBy("createdAt", "desc"));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedComments = snapshot.docs.map(doc => ({
         id: doc.id,
+        postId: id, // store postId for delete reference
         ...doc.data()
       }));
       setComments(fetchedComments);
-    } catch (err) {
-      console.error('Error fetching comments:', err);
-    }
-  };
+    }, (err) => {
+      console.error("Error fetching comments:", err);
+    });
+
+    return () => unsubscribe();
+  }, [id]);
 
   const handleCommentAdded = (newComment) => {
-    setComments([newComment, ...comments]);
+    // Optional: Optimistic UI
+    setComments(prev => [newComment, ...prev]);
   };
 
   const handleDeleteComment = async (commentId) => {
     try {
-      await deleteDoc(doc(db, "comments", commentId));
-      setComments(comments.filter(comment => comment.id !== commentId));
+      await deleteDoc(doc(db, "post", id, "comments", commentId));
+      // Real-time listener will update state automatically
     } catch (err) {
       console.error('Error deleting comment:', err);
     }
@@ -171,7 +176,7 @@ const PostDetail = () => {
       {/* Comments Section */}
       <div>
         {isLoggedIn ? (
-          <CommentForm postId={id} onCommentAdded={handleCommentAdded} />
+          <CommentForm postId={id} user={user} onCommentAdded={handleCommentAdded} />
         ) : (
           <div className="bg-white rounded-lg shadow-md p-6 mb-6 text-center">
             <p className="text-[#2D2424] mb-4">
@@ -179,7 +184,7 @@ const PostDetail = () => {
             </p>
           </div>
         )}
-        <CommentList comments={comments} onDeleteComment={handleDeleteComment} />
+        <CommentList comments={comments} onDeleteComment={handleDeleteComment} currentUser={user} />
       </div>
     </div>
   );

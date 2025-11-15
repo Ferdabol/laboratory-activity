@@ -5,18 +5,10 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-
-  app.enableCors({
-    origin: 'http://localhost:5173',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    credentials: true,
-  });
-
   const config = new DocumentBuilder()
-    .setTitle('Notes App API')
-    .setDescription('API for bookshelf')
+    .setTitle('Book Shelfs API')
+    .setDescription('CRUD API for Books using Firestore')
     .setVersion('1.0')
-    .addTag('notes')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

@@ -19,7 +19,7 @@ export const SecondaryButton = ({ children, onClick, type = "button", className 
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`bg-[#5C3D2E] text-[#E0C097] px-6 py-3 rounded-lg font-semibold hover:bg-[#2D2424] transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      className={`bg-[#5C3D2E] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#2D2424] transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     >
       {children}
     </button>
